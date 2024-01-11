@@ -1,0 +1,13 @@
+{
+    "manifest_version": 3,
+    "name": "Better GitHub Notifications",
+    "version": "1.0",
+    "background": {
+        "service_worker": "background.ts"
+    },
+    "permissions": ["identity", "storage", "alarms"],
+    "content_scripts": [{ "matches": ["https://github.com/*"], "js": ["content.js"] }],
+    "action": {
+        "default_popup": "popup.html"
+    }
+}
