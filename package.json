@@ -4,8 +4,8 @@
     "version": "1.0.0",
     "type": "module",
     "scripts": {
-        "build": "./build.sh",
-        "watch": "./build.sh --watch"
+        "build": "./build.ts",
+        "watch": "./build.ts --watch"
     },
     "devDependencies": {
         "@types/bun": "^1.0.1",
