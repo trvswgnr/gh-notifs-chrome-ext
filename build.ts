@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import manifest from "./extension/manifest.json";
 
 const srcdir = "extension";
-const outdir = "dist";
+const outdir = "build";
 const buildScriptDir = path.dirname(fileURLToPath(import.meta.url));
 const validExtensions = [".ts", ".js", ".tsx", ".jsx"];
 const rawEntrypoints = await getEntrypoints(manifest);
@@ -57,7 +57,9 @@ async function getEntrypoints(_manifest: unknown, entrypoints: string[] = []) {
         }
         if (endsWith(value, ".html")) {
             // look for scripts in the html file
-            const html = await fs.readFile(path.join(buildScriptDir, srcdir, value), "utf8").catch(() => null);
+            const html = await fs
+                .readFile(path.join(buildScriptDir, srcdir, value), "utf8")
+                .catch(() => null);
             if (!html) {
                 console.error(`Could not read file ${value}`);
                 process.exit(1);
@@ -101,9 +103,8 @@ async function validateEntrypoints(entrypoints: string[]) {
             for (const ext of validExts) {
                 const extname = path.extname(entrypoint);
                 const basename = entrypoint.slice(0, -extname.length);
-                const exists = await fs
-                    .stat(path.join(basename + ext))
-                    .catch(() => null);
+                const fpath = path.join(buildScriptDir, srcdir, basename + ext);
+                const exists = await fs.stat(fpath).catch(() => null);
                 if (exists && exists.isFile()) {
                     validated.push(basename + ext);
                     hasValidExt = true;
