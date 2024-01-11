@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "build": "./build.ts",
-        "watch": "./build.ts --watch"
+        "watch": "./build.ts -w"
     },
     "devDependencies": {
         "@types/bun": "^1.0.1",
