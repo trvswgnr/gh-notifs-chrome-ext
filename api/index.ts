@@ -4,7 +4,6 @@ export const config = {
 
 export default async function handler(request: Request) {
     const urlParams = new URL(request.url).searchParams;
-    console.log(request.body);
     const query = Object.fromEntries(urlParams);
     const cookies = request.headers.get("cookie");
     let body;
@@ -13,12 +12,9 @@ export default async function handler(request: Request) {
     } catch (e) {
         body = null;
     }
-
     return new Response(
         JSON.stringify({
-            body,
-            query,
-            cookies,
+            message: "hello from api",
         }),
         {
             status: 200,
@@ -27,4 +23,18 @@ export default async function handler(request: Request) {
             },
         },
     );
+
+    // return new Response(
+    //     JSON.stringify({
+    //         body,
+    //         query,
+    //         cookies,
+    //     }),
+    //     {
+    //         status: 200,
+    //         headers: {
+    //             "content-type": "application/json",
+    //         },
+    //     },
+    // );
 }
