@@ -1,29 +1,33 @@
 export const config = {
-  runtime: "edge",
+    runtime: "edge",
 };
 
-export default async function handler(request: Request) {
-  const urlParams = new URL(request.url).searchParams;
-  const query = Object.fromEntries(urlParams);
-  const cookies = request.headers.get("cookie");
-  let body;
-  try {
-    body = await request.json();
-  } catch (e) {
-    body = null;
-  }
-
-  return new Response(
+const badRequest = new Response(
     JSON.stringify({
-      body,
-      query,
-      cookies,
+        error: "bad request",
     }),
     {
-      status: 200,
-      headers: {
-        "content-type": "application/json",
-      },
+        status: 400,
+        headers: {
+            "content-type": "application/json",
+        },
+    },
+);
+
+export default async function handler(request: Request) {
+    if (request.method === "GET") {
+        // bad request
+        return badRequest;
     }
-  );
+    const urlParams = new URL(request.url).searchParams;
+    let body: { code?: string } | null = null;
+    try {
+        body = (await request.json()) as { code?: string };
+    } catch (e) {
+        body = null;
+    }
+
+    if (!body) return badRequest;
+    const { code } = body;
+    if (!code) return badRequest;
 }
