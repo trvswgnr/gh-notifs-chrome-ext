@@ -1,6 +1,8 @@
 dist/
 build/
 
+# Logs
+
 logs
 _.log
 npm-debug.log_

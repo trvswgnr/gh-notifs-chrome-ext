@@ -1,11 +1,12 @@
 {
-    "name": "github-notifs-chrome-ext",
-    "description": "Chrome extension for better GitHub notifications",
-    "version": "1.0.0",
-    "type": "module",
-    "devDependencies": {
-        "@types/bun": "^1.0.1",
-        "@types/chrome": "^0.0.256",
-        "@types/web": "^0.0.134"
-    }
+  "name": "gh-notifs-chrome-ext",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "^1.0.1",
+    "@types/chrome": "^0.0.256",
+    "@types/web": "^0.0.134"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
 }

@@ -14,9 +14,9 @@
     "noEmit": true,
 
     /* Linting */
-    "skipLibCheck": false,
+    "skipLibCheck": true,
     "strict": true,
     "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": true
   }
 }

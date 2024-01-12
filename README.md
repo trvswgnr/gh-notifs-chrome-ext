@@ -1,4 +1,4 @@
-# github-notifs-chrome-ext
+# gh-notifs-chrome-ext
 
 To install dependencies:
 
