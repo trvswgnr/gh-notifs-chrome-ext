@@ -1,9 +1,20 @@
 import handler from "../api/auth";
 import vercelConfig from "../vercel.json";
 
+const CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "OPTIONS, POST",
+    "Access-Control-Allow-Headers": "Content-Type",
+};
+
 const server = Bun.serve({
     port: 3000,
     async fetch(request) {
+        // Handle CORS preflight requests
+        if (request.method === "OPTIONS") {
+            const res = new Response("Departed", { headers: CORS_HEADERS });
+            return res;
+        }
         const url = new URL(request.url);
         const { pathname } = url;
         const matchingHeaders = getHeaders(pathname);
@@ -16,19 +27,27 @@ const server = Bun.serve({
             );
             const status = handlerResponse.status;
             return new Response(JSON.stringify(body), {
-                status,
-                headers,
+                status: 200,
+                headers: {
+                    "content-type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "OPTIONS, POST",
+                    "Access-Control-Allow-Headers": "Content-Type",
+                },
             });
         }
         return new Response(JSON.stringify({ message: "hello from Bun" }), {
             status: 200,
             headers: {
                 "content-type": "application/json",
-                ...matchingHeaders,
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "OPTIONS, POST",
+                "Access-Control-Allow-Headers": "Content-Type",
             },
         });
     },
 });
+
 console.log(`server running at ${server.url}`);
 
 /** get the headers for a given pathname from vercel.json */

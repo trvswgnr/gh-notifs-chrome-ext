@@ -7,7 +7,7 @@ chrome.alarms.create("checkGithub", { delayInMinutes: 0.01 });
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === "checkGithub") {
         const token = await getToken();
-        console.log(token);
+        console.log("stored token: ", token);
         if (token) {
             // const notifications = await checkGitHubNotifications(token);
             // console.log(notifications);
@@ -19,32 +19,27 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
  * initiates the OAuth flow
  */
 async function initiateOAuth() {
-    chrome.identity.launchWebAuthFlow(
-        {
-            url: buildAuthUrl(),
-            interactive: true,
-        },
-        async (redirectUrl) => {
-            const code = getParam(redirectUrl, "code");
-            console.log(code);
-            if (code) {
-                const env = await getEnv();
-                const apiUrl = getApiUrl(env);
-                const response = await fetch(`${apiUrl}/auth`, {
-                    method: "POST",
-                    headers: {
-                        "content-type": "application/json",
-                    },
-                    body: JSON.stringify({ code }),
-                });
-                const { token } = (await response.json()) as { token?: string };
-                console.log(token);
-                if (token) {
-                    await setToken(token);
-                }
-            }
-        },
-    );
+    // const redirectUrl = await chrome.identity.launchWebAuthFlow({
+    //     url: buildAuthUrl(),
+    //     interactive: true,
+    // });
+    // const code = getParam(redirectUrl, "code");
+    // console.log("code: ", code);
+    const code = "123";
+    if (code) {
+        const env = await getEnv();
+        const apiUrl = getApiUrl(env);
+        const response = await fetch(`${apiUrl}/auth`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ code }),
+        });
+        const { token } = await response.json().catch(() => ({}));
+        console.log("token: ", token);
+        if (token) {
+            await setToken(token);
+        }
+    }
 }
 
 /**

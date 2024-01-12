@@ -1,4 +1,5 @@
 import "./popup.html";
+
 /*
 <body>
     <h1>gh better notifs</h1>
