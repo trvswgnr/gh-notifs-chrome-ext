@@ -1,11 +1,12 @@
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
-import manifest from "../src/manifest.json";
 import { printStream } from "./lib";
 
 const srcdir = "src";
 const outdir = "extension";
+
+const manifest: ManifestV3 = await import("../src/manifest.ts").then((m) => m.default);
 
 // this file lives in the scripts directory, but we want to get the project directory
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -85,7 +86,7 @@ async function getEntrypoints(_manifest: unknown, entrypoints: string[] = []) {
     return entrypoints;
 }
 
-function replaceTsWithJs(file: Manifest): Manifest {
+function replaceTsWithJs(file: ManifestV3): ManifestV3 {
     return JSON.parse(JSON.stringify(file).replace(/\.ts"/g, '.js"'));
 }
 
@@ -125,7 +126,7 @@ async function validateEntrypoints(entrypoints: string[]) {
         console.error("The following entrypoints could not be found:");
         console.warn(missing);
         console.log(
-            "Check your manifest.json file and make sure that all of the entrypoints exist.",
+            "Check your manifest file and make sure that all of the entrypoints exist.",
         );
         process.exit(1);
     }
