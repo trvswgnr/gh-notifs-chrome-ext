@@ -19,6 +19,6 @@
         "strict": true,
         "noFallthroughCasesInSwitch": true,
         "forceConsistentCasingInFileNames": true,
-        "types": ["@types/chrome", "@types/web", "../types/manifest.d.ts"]
+        "types": ["@types/chrome", "@types/web", "../types"]
     }
 }

@@ -1,16 +1,25 @@
 console.log("background script running");
 chrome.runtime.onInstalled.addListener(initiateOAuth);
 
-// chrome.alarms.create('checkGithub', { periodInMinutes: 0.1 });
-chrome.alarms.create("checkGithub", { delayInMinutes: 0.01 });
+chrome.alarms.create("checkGithub", { periodInMinutes: 1 });
+// chrome.alarms.create("checkGithub", { delayInMinutes: 0.01 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === "checkGithub") {
         const token = await getToken();
-        console.log("stored token: ", token);
         if (token) {
-            // const notifications = await checkGitHubNotifications(token);
-            // console.log(notifications);
+            const [tab] = await chrome.tabs.query({ currentWindow: true, active: true });
+            if (!tab || tab.id === undefined) {
+                console.log("no tab id");
+                return;
+            }
+            const notifications = await getGitHubNotifications(token);
+            console.log(notifications);
+            if (!notifications.length) return;
+            console.log("sending message");
+            await chrome.tabs.sendMessage(tab.id, { hasNotifications: true }).catch((e) => {
+                console.log("error sending message", e);
+            });
         }
     }
 });
@@ -93,14 +102,17 @@ function andLog<T>(x: T, ...args: any[]) {
 /**
  * checks to see if the user has any GitHub notifications
  */
-async function checkGitHubNotifications(token: string) {
+async function getGitHubNotifications(token: string) {
     const response = await fetch("https://api.github.com/notifications", {
         headers: {
-            Authorization: `token ${token}`,
+            Authorization: `Bearer ${token}`,
+            Accept: "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
         },
-    });
-    const notifications = await response.json();
-    console.log(notifications);
+    }).catch(() => null);
+    if (!response || !response.ok) return [];
+    console.log(Object.fromEntries(response.headers.entries()));
+    const notifications: GhNotification[] = await response.json().catch(() => []);
     return notifications;
 }
 
@@ -130,16 +142,32 @@ function getApiUrl(env: EnvName) {
     }
     return "https://gh-notifs-chrome-ext.vercel.app/api";
 }
-
-/**
- * get our environment
- * @return {Promise<EnvName>}
- */
 async function getEnv(): Promise<EnvName> {
     return (await chrome.management
         .getSelf()
         .then(({ installType }) => installType)
         .catch(() => "other")) as EnvName;
+}
+
+type ParsedLinks = { [key: string]: URL };
+function parseLinkHeader(header: string): ParsedLinks {
+    const links: ParsedLinks = {};
+    // splitting by ', <' to avoid breaking URLs that contain commas, for whatever reason
+    const parts = header.split(", <");
+    parts.forEach((part) => {
+        // add the < back to the beginning of the URL
+        if (!part.startsWith("<")) {
+            part = "<" + part;
+        }
+        const match = part.match(/<(.*?)>;\s*rel="([^"]+)"/);
+        if (match) {
+            const url = match[1];
+            const rel = match[2];
+            links[rel] = new URL(url);
+        }
+    });
+
+    return links;
 }
 
 type EnvName = "admin" | "development" | "normal" | "sideload" | "other";
