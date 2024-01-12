@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import manifest from "../src/manifest.json";
+import { printStream } from "./lib";
 
 const srcdir = "src";
 const outdir = "extension";
@@ -13,57 +14,43 @@ const rawEntrypoints = await getEntrypoints(manifest);
 const entrypoints = await validateEntrypoints(rawEntrypoints);
 const watch = process.argv.includes("--watch") || process.argv.includes("-w");
 
-// if this wasnt imported, run the build
-if (!require.main) await build(watch);
+const watchFlag = watch ? "--watch" : "";
+console.log("building extension...");
+// clean the extension directory
+await fs.rm(path.join(projectDir, outdir), { recursive: true, force: true });
 
-export async function build(watch = false) {
-    const watchFlag = watch ? "--watch" : "";
-    console.log("building extension...");
-    // clean the extension directory
-    await fs.rm(path.join(projectDir, outdir), { recursive: true, force: true });
-
-    // if the extension directory does not exist, create it
-    if (!(await fs.stat(path.join(projectDir, outdir)).catch(() => null))) {
-        await fs.mkdir(path.join(projectDir, outdir));
-    }
-
-    // write the manifest file with the correct extensions
-    const manifestFile = replaceTsWithJs(manifest);
-    const writeManifest = Bun.write(
-        path.join(projectDir, outdir, "manifest.json"),
-        JSON.stringify(manifestFile, null, 4),
-    );
-
-    const { exited, stdout, stderr } = Bun.spawn(
-        [
-            "bun",
-            "build",
-            watchFlag,
-            ...entrypoints,
-            "--target",
-            "browser",
-            "--outdir",
-            path.join(projectDir, outdir),
-            "--asset-naming",
-            "[dir]/[name].[ext]",
-        ],
-        { cwd: path.join(projectDir, srcdir), stdout: "pipe", stderr: "pipe" },
-    );
-    const [code, _, stdoutText, stderrText] = await Promise.all([
-        exited,
-        writeManifest,
-        Bun.readableStreamToText(stdout),
-        Bun.readableStreamToText(stderr),
-    ]).catch((e) => {
-        console.error(e);
-        process.exit(1);
-    });
-    if (code) {
-        console.error(stderrText);
-        process.exit(code);
-    }
-    console.log(stdoutText);
+// if the extension directory does not exist, create it
+if (!(await fs.stat(path.join(projectDir, outdir)).catch(() => null))) {
+    await fs.mkdir(path.join(projectDir, outdir));
 }
+
+// write the manifest file with the correct extensions
+const manifestFile = replaceTsWithJs(manifest);
+
+console.log("writing manifest.json...");
+await Bun.write(
+    path.join(projectDir, outdir, "manifest.json"),
+    JSON.stringify(manifestFile, null, 4),
+);
+
+const { stdout, stderr } = Bun.spawn(
+    [
+        "bun",
+        "build",
+        watchFlag,
+        ...entrypoints,
+        "--target",
+        "browser",
+        "--outdir",
+        path.join(projectDir, outdir),
+        "--asset-naming",
+        "[dir]/[name].[ext]",
+    ],
+    { cwd: path.join(projectDir, srcdir), stdout: "pipe", stderr: "pipe" },
+);
+
+printStream(stdout);
+printStream(stderr);
 
 async function getEntrypoints(_manifest: unknown, entrypoints: string[] = []) {
     if (!_manifest || typeof _manifest !== "object") return entrypoints;
