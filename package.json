@@ -1,5 +1,8 @@
 {
   "name": "gh-notifs-chrome-ext",
+  "scripts": {
+    "start": "bun ./scripts/start.ts"
+  },
   "devDependencies": {
     "@types/bun": "^1.0.1",
     "@types/chrome": "^0.0.256"
