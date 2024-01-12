@@ -1,12 +1,11 @@
 {
   "name": "gh-notifs-chrome-ext",
-  "type": "module",
   "devDependencies": {
     "@types/bun": "^1.0.1",
-    "@types/chrome": "^0.0.256",
-    "@types/web": "^0.0.134"
+    "@types/chrome": "^0.0.256"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
-  }
+  },
+  "type": "module"
 }
