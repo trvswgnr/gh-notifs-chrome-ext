@@ -27,11 +27,11 @@ if (!(await fs.stat(path.join(projectDir, outdir)).catch(() => null))) {
 // write the manifest file with the correct extensions
 const manifestFile = replaceTsWithJs(manifest);
 
-console.log("writing manifest.json...");
-await Bun.write(
+const manifestBytes = await Bun.write(
     path.join(projectDir, outdir, "manifest.json"),
     JSON.stringify(manifestFile, null, 4),
 );
+console.log(`manifest.json    ${bytesToKilobytes(manifestBytes)}`);
 
 const { stdout, stderr } = Bun.spawn(
     [
@@ -57,12 +57,12 @@ async function getEntrypoints(_manifest: unknown, entrypoints: string[] = []) {
     const manifest = _manifest as Record<string, unknown>;
     for (const key in manifest) {
         const value = manifest[key];
-        if (endsWith(value, ".ts", ".js")) {
+        if (endsWith(value, ...validExtensions)) {
             entrypoints.push(value);
             continue;
         }
         if (endsWith(value, ".html")) {
-            // look for scripts in the html file
+            // look for script tags with src in the html file
             const html = await fs
                 .readFile(path.join(projectDir, srcdir, value), "utf8")
                 .catch(() => null);
@@ -131,3 +131,9 @@ async function validateEntrypoints(entrypoints: string[]) {
     }
     return validated;
 }
+
+function bytesToKilobytes(bytes: number) {
+    return Math.round(bytes / 1024) + " KB";
+}
+
+export default {}
