@@ -1,50 +1,69 @@
-#!/usr/bin/env bun
-
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
-import manifest from "./extension/manifest.json";
+import manifest from "../src/manifest.json";
 
-const srcdir = "extension";
-const outdir = "build";
-const buildScriptDir = path.dirname(fileURLToPath(import.meta.url));
+const srcdir = "src";
+const outdir = "extension";
+
+// this file lives in the scripts directory, but we want to get the project directory
+const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const validExtensions = [".ts", ".js", ".tsx", ".jsx"];
 const rawEntrypoints = await getEntrypoints(manifest);
 const entrypoints = await validateEntrypoints(rawEntrypoints);
-const watchFlag = process.argv.includes("--watch") || process.argv.includes("-w") ? "--watch" : "";
+const watch = process.argv.includes("--watch") || process.argv.includes("-w");
 
-// clean the extension directory
-await fs.rm(path.join(buildScriptDir, outdir), { recursive: true, force: true });
+// if this wasnt imported, run the build
+if (!require.main) await build(watch);
 
-// if the extension directory does not exist, create it
-if (!(await fs.stat(path.join(buildScriptDir, outdir)).catch(() => null))) {
-    await fs.mkdir(path.join(buildScriptDir, outdir));
+export async function build(watch = false) {
+    const watchFlag = watch ? "--watch" : "";
+    console.log("building extension...");
+    // clean the extension directory
+    await fs.rm(path.join(projectDir, outdir), { recursive: true, force: true });
+
+    // if the extension directory does not exist, create it
+    if (!(await fs.stat(path.join(projectDir, outdir)).catch(() => null))) {
+        await fs.mkdir(path.join(projectDir, outdir));
+    }
+
+    // write the manifest file with the correct extensions
+    const manifestFile = replaceTsWithJs(manifest);
+    const writeManifest = Bun.write(
+        path.join(projectDir, outdir, "manifest.json"),
+        JSON.stringify(manifestFile, null, 4),
+    );
+
+    const { exited, stdout, stderr } = Bun.spawn(
+        [
+            "bun",
+            "build",
+            watchFlag,
+            ...entrypoints,
+            "--target",
+            "browser",
+            "--outdir",
+            path.join(projectDir, outdir),
+            "--asset-naming",
+            "[dir]/[name].[ext]",
+        ],
+        { cwd: path.join(projectDir, srcdir), stdout: "pipe", stderr: "pipe" },
+    );
+    const [code, _, stdoutText, stderrText] = await Promise.all([
+        exited,
+        writeManifest,
+        Bun.readableStreamToText(stdout),
+        Bun.readableStreamToText(stderr),
+    ]).catch((e) => {
+        console.error(e);
+        process.exit(1);
+    });
+    if (code) {
+        console.error(stderrText);
+        process.exit(code);
+    }
+    console.log(stdoutText);
 }
-
-// write the manifest file with the correct extensions
-const manifestFile = replaceTsWithJs(manifest);
-await Bun.write(
-    path.join(buildScriptDir, outdir, "manifest.json"),
-    JSON.stringify(manifestFile, null, 4),
-);
-
-const { exited } = Bun.spawn(
-    [
-        "bun",
-        "build",
-        watchFlag,
-        ...entrypoints,
-        "--target",
-        "browser",
-        "--outdir",
-        path.join(buildScriptDir, outdir),
-        "--asset-naming",
-        "[dir]/[name].[ext]",
-    ],
-    { cwd: path.join(buildScriptDir, srcdir) },
-);
-const code = await exited;
-process.exit(code);
 
 async function getEntrypoints(_manifest: unknown, entrypoints: string[] = []) {
     if (!_manifest || typeof _manifest !== "object") return entrypoints;
@@ -58,7 +77,7 @@ async function getEntrypoints(_manifest: unknown, entrypoints: string[] = []) {
         if (endsWith(value, ".html")) {
             // look for scripts in the html file
             const html = await fs
-                .readFile(path.join(buildScriptDir, srcdir, value), "utf8")
+                .readFile(path.join(projectDir, srcdir, value), "utf8")
                 .catch(() => null);
             if (!html) {
                 console.error(`Could not read file ${value}`);
@@ -94,7 +113,7 @@ async function validateEntrypoints(entrypoints: string[]) {
     const missing: string[] = [];
     for (const entrypoint of entrypoints) {
         let hasValidExt = false;
-        const exists = await fs.stat(path.join(buildScriptDir, entrypoint)).catch(() => null);
+        const exists = await fs.stat(path.join(projectDir, entrypoint)).catch(() => null);
         if (exists && exists.isFile()) {
             validated.push(entrypoint);
             hasValidExt = true;
@@ -103,7 +122,7 @@ async function validateEntrypoints(entrypoints: string[]) {
             for (const ext of validExts) {
                 const extname = path.extname(entrypoint);
                 const basename = entrypoint.slice(0, -extname.length);
-                const fpath = path.join(buildScriptDir, srcdir, basename + ext);
+                const fpath = path.join(projectDir, srcdir, basename + ext);
                 const exists = await fs.stat(fpath).catch(() => null);
                 if (exists && exists.isFile()) {
                     validated.push(basename + ext);
