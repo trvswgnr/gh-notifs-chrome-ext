@@ -1,4 +1,5 @@
-type Manifest = {
+/** Chrome Extension Manifest V3 */
+type ManifestV3 = {
     chrome_settings_overrides?: any;
     /**
      * Override pages are a way to substitute an HTML file from your extension for a page that
