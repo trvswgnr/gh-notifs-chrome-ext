@@ -125,9 +125,7 @@ async function validateEntrypoints(entrypoints: string[]) {
     if (missing.length) {
         console.error("The following entrypoints could not be found:");
         console.warn(missing);
-        console.log(
-            "Check your manifest file and make sure that all of the entrypoints exist.",
-        );
+        console.log("Check your manifest file and make sure that all of the entrypoints exist.");
         process.exit(1);
     }
     return validated;
@@ -137,4 +135,4 @@ function bytesToKilobytes(bytes: number) {
     return Math.round(bytes / 1024) + " KB";
 }
 
-export default {}
+export default {};
