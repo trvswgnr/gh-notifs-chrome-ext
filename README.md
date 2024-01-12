@@ -1,13 +1,17 @@
 # gh-notifs-chrome-ext
 
-To install dependencies:
+install deps:
 
 ```bash
-bun install
+bun i
 ```
 
-To run:
+run:
 
 ```bash
-bun ./scripts/start.ts
+bun run start
 ```
+
+build output will be in the "extension" folder
+
+go to [chrome://extensions](chrome://extensions) and Load Unpacked, then select the "extension" folder
