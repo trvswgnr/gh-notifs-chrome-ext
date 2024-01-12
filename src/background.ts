@@ -19,34 +19,38 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
  * initiates the OAuth flow
  */
 async function initiateOAuth() {
-    // const redirectUrl = await chrome.identity.launchWebAuthFlow({
-    //     url: buildAuthUrl(),
-    //     interactive: true,
-    // });
-    // const code = getParam(redirectUrl, "code");
-    // console.log("code: ", code);
-    const code = "123";
-    if (code) {
-        const env = await getEnv();
-        const apiUrl = getApiUrl(env);
-        const response = await fetch(`${apiUrl}/auth`, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ code }),
-        });
-        const { token } = await response.json().catch(() => ({}));
-        console.log("token: ", token);
-        if (token) {
-            await setToken(token);
-        }
+    const env = await getEnv();
+    const apiUrl = getApiUrl(env);
+    const savedTokenResponse = await fetch(`${apiUrl}/auth?saved=true`);
+    const { token: savedToken } = await savedTokenResponse.json().catch(() => ({}));
+    const preAuthUrl = buildPreAuthUrl();
+    console.log("preAuthUrl: ", preAuthUrl);
+    if (savedToken) {
+        await setToken(savedToken);
+        return;
     }
+    const redirectUrl = await chrome.identity.launchWebAuthFlow({
+        url: preAuthUrl,
+        interactive: true,
+    });
+    const code = getParam(redirectUrl, "code");
+    if (!code) return;
+    const response = await fetch(`${apiUrl}/auth`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code }),
+    });
+    const { token } = await response.json().catch(() => ({}));
+    if (!token) return;
+    await setToken(token);
 }
 
 /**
  * builds the OAuth URL
  */
-function buildAuthUrl() {
-    let client_id = "43ce600f21d429a85512";
+function buildPreAuthUrl() {
+    let client_id = chrome.runtime.getManifest().oauth2?.client_id ?? "";
+    if (!client_id) throw new Error("missing oauth2.client_id");
     let redirect_uri = encodeURIComponent(chrome.identity.getRedirectURL());
     return `https://github.com/login/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&scope=user%20notifications`;
 }
