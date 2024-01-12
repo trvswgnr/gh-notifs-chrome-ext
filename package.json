@@ -3,10 +3,6 @@
     "description": "Chrome extension for better GitHub notifications",
     "version": "1.0.0",
     "type": "module",
-    "scripts": {
-        "build": "./build.ts",
-        "watch": "./build.ts -w"
-    },
     "devDependencies": {
         "@types/bun": "^1.0.1",
         "@types/chrome": "^0.0.256",

@@ -1,8 +1,6 @@
 dist/
 build/
 
-# Logs
-
 logs
 _.log
 npm-debug.log_
@@ -174,3 +172,4 @@ dist
 
 # Finder (MacOS) folder config
 .DS_Store
+.vercel
