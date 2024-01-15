@@ -67,6 +67,12 @@ import {
     async function initiateOAuth() {
         dev.log("initiating OAuth");
         await clearToken();
+        const personalToken = await getPersonalToken();
+        if (personalToken) {
+            dev.log("using personal token");
+            await setToken(personalToken);
+            return;
+        }
         const env = await getEnv();
         const apiUrl = getApiUrl(env);
         const savedTokenResponse = await fetch(`${apiUrl}/auth?saved=true`);
