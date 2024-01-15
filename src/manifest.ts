@@ -7,6 +7,7 @@ const manifest: ManifestV3 = {
     content_scripts: [{ matches: ["https://github.com/*"], js: ["content.js"] }],
     action: { default_popup: "popup.html" },
     oauth2: { client_id: "43ce600f21d429a85512", scopes: ["user"] },
+    options_ui: { page: "options.html", open_in_tab: false },
 };
 
 export default manifest;

@@ -25,3 +25,11 @@ chrome.storage.local.get(["token"], (result) => {
     }
 });
 console.log(chrome.identity.getRedirectURL());
+
+document.querySelector("#go-to-options")?.addEventListener("click", () => {
+    if (!chrome.runtime.openOptionsPage) {
+        window.open(chrome.runtime.getURL("options.html"));
+        return;
+    }
+    chrome.runtime.openOptionsPage();
+});

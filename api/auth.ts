@@ -11,6 +11,7 @@ export default async function handler(request: Request) {
         if (!saved) return badRequest();
         const token = await getAccessToken(true).catch(None);
         if (!token) return serverError("access token not found");
+        console.log("got saved token", token);
         return success({ token });
     }
     const { code } = await getJson<AnyObj>(request, {});
@@ -74,6 +75,7 @@ async function getAccessToken(a: string | boolean) {
     });
 
     const { access_token } = await getJson<AnyObj>(res, {});
+    if (!access_token) throw new Error("missing access token");
     return String(access_token);
 }
 
