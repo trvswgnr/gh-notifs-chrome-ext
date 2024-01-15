@@ -1,21 +1,14 @@
+import {
+    getDev,
+    getEnv,
+    GH_PERSONAL_TOKEN_STORAGE_KEY,
+    GH_TOKEN_STORAGE_KEY,
+    type EnvName,
+} from "./lib";
+
 (async () => {
+    const dev = await getDev();
     let usingPersonalToken = false;
-    const GH_TOKEN_STORAGE_KEY = "gh-notifs-token";
-    const GH_PERSONAL_TOKEN_STORAGE_KEY = "gh-notifs-personal-token";
-    const noop = (..._args: any[]) => {};
-    const env = await getEnv();
-    let dev = {
-        log: (...args: any[]) => console.log(...args),
-        error: (...args: any[]) => console.error(...args),
-        warn: (...args: any[]) => console.warn(...args),
-    };
-    if (env !== "development") {
-        dev = {
-            log: noop,
-            error: noop,
-            warn: noop,
-        };
-    }
 
     dev.log("background script running");
 
@@ -227,16 +220,6 @@
         return "https://gh-notifs-chrome-ext.vercel.app/api";
     }
 
-    /**
-     * get the environment name
-     */
-    async function getEnv(): Promise<EnvName> {
-        return (await chrome.management
-            .getSelf()
-            .then(({ installType }) => installType)
-            .catch(() => "other")) as EnvName;
-    }
-
     type ParsedLinks = { [key: string]: URL };
     function parseLinkHeader(header: string): ParsedLinks {
         const links: ParsedLinks = {};
@@ -299,5 +282,4 @@
     }
 })();
 
-type EnvName = "admin" | "development" | "normal" | "sideload" | "other";
 type AnyFn = (...args: any[]) => any;

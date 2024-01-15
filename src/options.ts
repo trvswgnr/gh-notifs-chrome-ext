@@ -1,6 +1,5 @@
 import "./options.html";
-
-const GH_PERSONAL_TOKEN_STORAGE_KEY = "gh-notifs-personal-token";
+import { GH_PERSONAL_TOKEN_STORAGE_KEY } from "./lib";
 
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.getElementById("save")?.addEventListener("click", saveOptions);
@@ -19,14 +18,9 @@ function saveOptions() {
 }
 
 function restoreOptions() {
-    chrome.storage.local.get(
-        {
-            [GH_PERSONAL_TOKEN_STORAGE_KEY]: "",
-        },
-        (storage) => {
-            const tokenInput = document.querySelector<HTMLInputElement>("#token");
-            if (!tokenInput) return;
-            tokenInput.value = storage[GH_PERSONAL_TOKEN_STORAGE_KEY];
-        },
-    );
+    chrome.storage.local.get({ [GH_PERSONAL_TOKEN_STORAGE_KEY]: "" }, (storage) => {
+        const tokenInput = document.querySelector<HTMLInputElement>("#token");
+        if (!tokenInput) return;
+        tokenInput.value = storage[GH_PERSONAL_TOKEN_STORAGE_KEY];
+    });
 }

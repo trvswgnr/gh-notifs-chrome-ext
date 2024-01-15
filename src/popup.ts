@@ -1,19 +1,15 @@
+import { GH_PERSONAL_TOKEN_STORAGE_KEY, GH_TOKEN_STORAGE_KEY, getDev } from "./lib";
 import "./popup.html";
 
-/*
-<body>
-    <h1>gh better notifs</h1>
-    <p>Status: <span id="status">Not connected</span></p>
-    <button id="loginButton">Log in with GitHub</button>
+(async () => {
+    const dev = await getDev();
+    dev.log("popup script running");
 
-    <script src="popup.js"></script>
-</body>
-*/
-
-// get the token from the storage (requires the storage permission)
-chrome.storage.local.get(["token"], (result) => {
-    console.log("Value currently is " + result.token);
-    if (result.token) {
+    // get the token from the storage (requires the storage permission)
+    chrome.storage.local.get([GH_PERSONAL_TOKEN_STORAGE_KEY, GH_TOKEN_STORAGE_KEY], (result) => {
+        const token = result[GH_PERSONAL_TOKEN_STORAGE_KEY] || result[GH_TOKEN_STORAGE_KEY];
+        if (!token) return;
+        dev.log("Value currently is " + token);
         // if the token exists, change the status to connected
         const status = document.getElementById("status");
         if (!status) return;
@@ -22,14 +18,14 @@ chrome.storage.local.get(["token"], (result) => {
         const loginButton = document.getElementById("loginButton");
         if (!loginButton) return;
         loginButton.remove();
-    }
-});
-console.log(chrome.identity.getRedirectURL());
+    });
+    dev.log(chrome.identity.getRedirectURL());
 
-document.querySelector("#go-to-options")?.addEventListener("click", () => {
-    if (!chrome.runtime.openOptionsPage) {
-        window.open(chrome.runtime.getURL("options.html"));
-        return;
-    }
-    chrome.runtime.openOptionsPage();
-});
+    document.querySelector("#go-to-options")?.addEventListener("click", () => {
+        if (!chrome.runtime.openOptionsPage) {
+            window.open(chrome.runtime.getURL("options.html"));
+            return;
+        }
+        chrome.runtime.openOptionsPage();
+    });
+})();
