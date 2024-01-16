@@ -10,9 +10,9 @@ const CORS_HEADERS = {
 const server = Bun.serve({
     port: 3000,
     async fetch(request) {
-        // Handle CORS preflight requests
+        // handle CORS preflight requests
         if (request.method === "OPTIONS") {
-            const res = new Response("Departed", { headers: CORS_HEADERS });
+            const res = new Response("c00lb34nz", { headers: CORS_HEADERS });
             return res;
         }
         const url = new URL(request.url);

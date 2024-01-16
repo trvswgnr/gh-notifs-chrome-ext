@@ -2,20 +2,18 @@ export const GH_TOKEN_STORAGE_KEY = "gh-notifs-token";
 export const GH_PERSONAL_TOKEN_STORAGE_KEY = "gh-notifs-personal-token";
 const noop = (..._args: any[]) => {};
 
-export const getDev = async () => {
-    let dev = {
+export const getDev = () => {
+    const dev = {
         log: (...args: any[]) => console.log(...args),
         error: (...args: any[]) => console.error(...args),
         warn: (...args: any[]) => console.warn(...args),
     };
-    const env = await getEnv();
-    if (env !== "development") {
-        dev = {
-            log: noop,
-            error: noop,
-            warn: noop,
-        };
-    }
+    getEnv().then((env) => {
+        if (env === "development") return;
+        dev.log = noop;
+        dev.error = noop;
+        dev.warn = noop;
+    });
     return dev;
 };
 
